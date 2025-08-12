@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CR7 Football Academy Sri Lanka — Registration</title>
+  <style>
+    :root{
+      --accent:#0b6bfd;
+      --muted:#666;
+      --card-bg:#fff;
+      --bg:#f3f6fb;
+      --shadow: 0 6px 18px rgba(12,18,40,0.08);
+      --radius:14px;
+    }
+    *{box-sizing:border-box;font-family:Inter, system-ui, sans-serif}
+    body{margin:0;background:var(--bg);color:#111;padding:24px}
+    header{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+    .logo{
+      width:64px;height:64px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#0bb3ff);
+      display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px;box-shadow:var(--shadow);
+    }
+    h1{margin:0;font-size:20px}
+    p.lead{margin:6px 0 18px;color:var(--muted)}
+
+    .container{display:grid;grid-template-columns:1fr 420px;gap:20px;align-items:start}
+    @media(max-width:900px){ .container{grid-template-columns:1fr} }
+
+    /* LEFT: columns */
+    .columns{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    @media(max-width:700px){ .columns{grid-template-columns:1fr; } }
+
+    .column{
+      background:var(--card-bg);padding:12px;border-radius:12px;box-shadow:var(--shadow);
+      min-height:120px;
+    }
+    .col-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+    .col-title h3{margin:0;font-size:16px}
+    .player-list{display:flex;flex-direction:column;gap:8px;max-height:420px;overflow:auto;padding-right:6px}
+    .player{
+      display:flex;justify-content:space-between;align-items:center;padding:8px;border-radius:10px;background:#f6f9ff;border:1px solid rgba(11,107,253,0.06);
+      cursor:pointer;
+    }
+    .player small{color:var(--muted)}
+
+    /* RIGHT: form */
+    .card{
+      background:var(--card-bg);padding:16px;border-radius:12px;box-shadow:var(--shadow);
+    }
+    label{display:block;font-size:13px;margin-top:10px;color:var(--muted)}
+    input[type="text"], input[type="email"], input[type="tel"], input[type="number"]{
+      width:100%;padding:10px;border-radius:8px;border:1px solid #e6eefc;margin-top:6px;
+      font-size:14px;background:#fff;
+    }
+    button{
+      margin-top:14px;padding:10px 14px;border-radius:10px;border:0;background:var(--accent);color:#fff;font-weight:600;cursor:pointer;
+      box-shadow: 0 8px 20px rgba(11,107,253,0.12);
+    }
+    .muted{font-size:13px;color:var(--muted);margin-top:8px}
+
+    footer{margin-top:18px;color:var(--muted);font-size:13px}
+
+    /* simple modal */
+    .modal{
+      position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(8,12,20,0.45);visibility:hidden;opacity:0;transition:all .12s;
+    }
+    .modal.open{visibility:visible;opacity:1}
+    .modal-card{background:#fff;padding:16px;border-radius:12px;min-width:280px;box-shadow:var(--shadow)}
+    .modal-card h4{margin:0 0 6px}
+    .close-btn{background:#eee;border-radius:8px;padding:6px 8px;border:0;cursor:pointer;margin-left:8px}
+    .controls{display:flex;gap:8px;align-items:center;margin-top:8px}
+    .small{font-size:13px;color:var(--muted)}
+    .note{font-size:12px;color:#b43}
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">CR7</div>
+  <div>
+    <h1>CR7 Football Academy — Sri Lanka</h1>
+    <p class="lead">Register children for U-12, U-14, and U-16. Parents register here and the child is automatically placed in the correct column.</p>
+  </div>
+</header>
+
+<div class="container">
+  <!-- left: player columns -->
+  <div>
+    <div style="display:flex;gap:12px;margin-bottom:12px;align-items:center;">
+      <input id="search" type="text" placeholder="Search child or parent name..." style="flex:1;padding:10px;border-radius:10px;border:1px solid #eaeefc" />
+      <button onclick="clearAll()">Clear All</button>
+    </div>
+
+    <div class="columns">
+      <div class="column" id="u12-col">
+        <div class="col-title"><h3>U-12</h3><small class="small" id="u12-count">0</small></div>
+        <div class="player-list" id="u12-list"></div>
+      </div>
+
+      <div class="column" id="u14-col">
+        <div class="col-title"><h3>U-14</h3><small class="small" id="u14-count">0</small></div>
+        <div class="player-list" id="u14-list"></div>
+      </div>
+
+      <div class="column" id="u16-col">
+        <div class="col-title"><h3>U-16</h3><small class="small" id="u16-count">0</small></div>
+        <div class="player-list" id="u16-list"></div>
+      </div>
+    </div>
+    <footer>
+      Tip: click a child to view the parent's phone & email. Data is stored in your browser (localStorage).
+    </footer>
+  </div>
+
+  <!-- right: registration form -->
+  <div>
+    <div class="card">
+      <h2 style="margin:0 0 6px">Parent / Child Registration</h2>
+      <div class="muted">Please enter parent details and child age. The system will place the child in the correct column automatically.</div>
+
+      <form id="reg-form" onsubmit="return handleSubmit(event)">
+        <label>Parent's Name</label>
+        <input id="parentName" type="text" required placeholder="e.g. Rohan Perera" />
+
+        <label>Phone Number</label>
+        <input id="parentPhone" type="tel" required placeholder="e.g. 0711234567" />
+
+        <label>Email Address</label>
+        <input id="parentEmail" type="email" placeholder="optional" />
+
+        <label>Child's Name</label>
+        <input id="childName" type="text" required placeholder="e.g. Kavin Perera" />
+
+        <label>Child's Age (years)</label>
+        <input id="childAge" type="number" required min="6" max="16" placeholder="6 - 16" />
+
+        <div style="display:flex;gap:8px;">
+          <button type="submit">Register Child</button>
+          <button type="button" style="background:#eee;color:#111" onclick="fillTest()">Fill Test</button>
+        </div>
+      </form>
+
+      <div id="status" class="muted" style="margin-top:10px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- details modal -->
+<div class="modal" id="modal">
+  <div class="modal-card" id="modalCard">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <h4 id="modalChild">Child Name</h4>
+        <div class="small" id="modalAge">Age</div>
+      </div>
+      <div><button class="close-btn" onclick="closeModal()">Close</button></div>
+    </div>
+
+    <div style="margin-top:10px">
+      <div><strong>Parent:</strong> <span id="modalParent"></span></div>
+      <div><strong>Phone:</strong> <a id="modalPhone" href="">call</a></div>
+      <div><strong>Email:</strong> <a id="modalEmail" href="">email</a></div>
+    </div>
+
+    <div class="controls">
+      <button onclick="deleteEntry()" style="background:#ff5252">Delete Entry</button>
+      <button onclick="editEntry()" style="background:#ffd166;color:#111">Edit</button>
+      <div style="flex:1"></div>
+      <div class="small">ID: <span id="modalId"></span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // localStorage key
+  const STORAGE_KEY = 'cr7_players_v1';
+
+  // in-memory currently selected id
+  let currentSelectedId = null;
+  let players = [];
+
+  // load on start
+  document.addEventListener('DOMContentLoaded', ()=>{
+    loadPlayers();
+    renderAll();
+    document.getElementById('search').addEventListener('input', renderAll);
+  });
+
+  function loadPlayers(){
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      players = raw ? JSON.parse(raw) : [];
+    } catch(e){
+      players = [];
+    }
+  }
+
+  function savePlayers(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(players));
+  }
+
+  function handleSubmit(e){
+    e.preventDefault();
+    const parentName = document.getElementById('parentName').value.trim();
+    const parentPhone = document.getElementById('parentPhone').value.trim();
+    const parentEmail = document.getElementById('parentEmail').value.trim();
+    const childName = document.getElementById('childName').value.trim();
+    const childAge = parseInt(document.getElementById('childAge').value, 10);
+
+    if(!parentName || !parentPhone || !childName || isNaN(childAge)){
+      alert('Please complete all required fields.');
+      return false;
+    }
+
+    // determine group
+    const group = ageToGroup(childAge);
+    if(!group){
+      alert('Age must be between 6 and 16 for registration.');
+      return false;
+    }
+
+    const entry = {
+      id: 'p' + Date.now(),
+      parentName, parentPhone, parentEmail,
+      childName, childAge, group,
+      created: new Date().toISOString()
+    };
+
+    players.push(entry);
+    savePlayers();
+    renderAll();
+    document.getElementById('status').textContent = childName + ' added to ' + group + '.';
+    e.target.reset();
+
+    // small confirm flash
+    setTimeout(()=>document.getElementById('status').textContent = '', 3000);
+    return false;
+  }
+
+  function ageToGroup(age){
+    if(age <= 12 && age >= 6) return 'U-12';
+    if(age >= 13 && age <= 14) return 'U-14';
+    if(age >= 15 && age <= 16) return 'U-16';
+    return null;
+  }
+
+  function renderAll(){
+    const q = document.getElementById('search').value.trim().toLowerCase();
+    const u12 = document.getElementById('u12-list');
+    const u14 = document.getElementById('u14-list');
+    const u16 = document.getElementById('u16-list');
+    u12.innerHTML = ''; u14.innerHTML = ''; u16.innerHTML = '';
+
+    const filtered = players.filter(p => {
+      if(!q) return true;
+      return (p.childName + ' ' + p.parentName).toLowerCase().includes(q);
+    });
+
+    const listU12 = filtered.filter(p => p.group === 'U-12');
+    const listU14 = filtered.filter(p => p.group === 'U-14');
+    const listU16 = filtered.filter(p => p.group === 'U-16');
+
+    listU12.forEach(p => u12.appendChild(createPlayerNode(p)));
+    listU14.forEach(p => u14.appendChild(createPlayerNode(p)));
+    listU16.forEach(p => u16.appendChild(createPlayerNode(p)));
+
+    document.getElementById('u12-count').textContent = listU12.length;
+    document.getElementById('u14-count').textContent = listU14.length;
+    document.getElementById('u16-count').textContent = listU16.length;
+  }
+
+  function createPlayerNode(p){
+    const el = document.createElement('div');
+    el.className = 'player';
+    el.dataset.id = p.id;
+    el.innerHTML = `<div>
+      <div style="font-weight:600">${escapeHtml(p.childName)}</div>
+      <small>${escapeHtml(p.parentName)}</small>
+    </div>
+    <div><small>${p.childAge}</small></div>`;
+    el.addEventListener('click', ()=>openModal(p.id));
+    return el;
+  }
+
+  function openModal(id){
+    const p = players.find(x => x.id === id);
+    if(!p) return;
+    currentSelectedId = id;
+    document.getElementById('modalChild').textContent = p.childName;
+    document.getElementById('modalAge').textContent = p.group + ' — Age: ' + p.childAge;
+    document.getElementById('modalParent').textContent = p.parentName;
+    const ph = document.getElementById('modalPhone');
+    ph.href = 'tel:' + p.parentPhone;
+    ph.textContent = p.parentPhone;
+    const em = document.getElementById('modalEmail');
+    if(p.parentEmail){
+      em.href = 'mailto:' + p.parentEmail;
+      em.textContent = p.parentEmail;
+    } else {
+      em.href = '#';
+      em.textContent = '(no email)';
+    }
+    document.getElementById('modalId').textContent = p.id;
+    document.getElementById('modal').classList.add('open');
+  }
+
+  function closeModal(){ document.getElementById('modal').classList.remove('open'); currentSelectedId = null; }
+
+  function deleteEntry(){
+    if(!currentSelectedId) return;
+    if(!confirm('Delete this registration?')) return;
+    players = players.filter(p => p.id !== currentSelectedId);
+    savePlayers();
+    renderAll();
+    closeModal();
+  }
+
+  function editEntry(){
+    if(!currentSelectedId) return;
+    const p = players.find(x => x.id === currentSelectedId);
+    if(!p) return;
+    closeModal();
+    // prefill form for editing (simple replace-on-save)
+    document.getElementById('parentName').value = p.parentName;
+    document.getElementById('parentPhone').value = p.parentPhone;
+    document.getElementById('parentEmail').value = p.parentEmail;
+    document.getElementById('childName').value = p.childName;
+    document.getElementById('childAge').value = p.childAge;
+
+    // remove old record — user will submit new to replace
+    players = players.filter(x => x.id !== currentSelectedId);
+    savePlayers();
+    renderAll();
+  }
+
+  function clearAll(){
+    if(!confirm('Clear ALL registrations? This cannot be undone.')) return;
+    players = [];
+    savePlayers();
+    renderAll();
+  }
+
+  function fillTest(){
+    // handy sample entries
+    const samples = [
+      {parentName:'Anil Silva', parentPhone:'0711234567', parentEmail:'', childName:'Sachin Silva', childAge:11},
+      {parentName:'Nirosha Jay', parentPhone:'0778881122', parentEmail:'nirosha@example.com', childName:'Kamal Jay', childAge:14},
+      {parentName:'Ravi Kumar', parentPhone:'0709993344', parentEmail:'ravi@example.com', childName:'Dilan Kumar', childAge:15},
+    ];
+    samples.forEach(s=>{
+      const group = ageToGroup(s.childAge);
+      players.push({
+        id:'p'+Date.now()+Math.floor(Math.random()*1000),
+        ...s, group, created:new Date().toISOString()
+      });
+    });
+    savePlayers();
+    renderAll();
+  }
+
+  // helper: escape for HTML
+  function escapeHtml(s){
+    if(!s) return '';
+    return s.replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // optional: keyboard shortcut to focus search (press /)
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === '/') { e.preventDefault(); document.getElementById('search').focus(); }
+  });
+</script>
+
+</body>
+</html>
